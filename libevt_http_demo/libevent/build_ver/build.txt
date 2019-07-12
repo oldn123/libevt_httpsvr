@@ -1,0 +1,17 @@
+https://www.cnblogs.com/nanzhi/p/7883911.html
+
+Windows下编译libevent及使用
+下载地址：http://libevent.org/ ，下载版本：libevent-2.0.22-stable.tar.gz
+解压， 目录为...\libevent-2.0.22-stable(自己的目录)
+修改以下三个文件，添加宏定义：
+
+在以下3个文件开头添加“#define _WIN32_WINNT 0x0500”
+
+libevent-2.0.21-stable\event_iocp.c
+
+libevent-2.0.21-stable\evthread_win32.c
+
+libevent-2.0.21-stable\listener.c
+
+打开VS2015命令工具，切换到解压后的libevent目录，然后执行nmake /f Makefile.nmake命令进行编译，命令如下图所示，
+           先输入cd/d D:\aa_zhj\a_work\projects\libevent\libevent-2.0.22-stable切换目录，然后输入nmake /f Makefile.nmake进行编译。
