@@ -75,21 +75,8 @@ void OnResponse(evhttp_request * req, void * arg)
 	catch (std::exception& e) {
 		OutputDebugStringA(e.what());
 	}
-}
-
-static void on_client_request_function(struct job *job) {
-
-	struct evhttp_request *client = (struct evhttp_request *)job->user_data;
 
 
-	OnResponse(client, NULL);
-
-
-	delete job;
-}
-
-void generic_handler(struct evhttp_request *req, void *arg)
-{
 	struct evbuffer *buf = evbuffer_new();
 	if (!buf)
 	{
@@ -97,23 +84,6 @@ void generic_handler(struct evhttp_request *req, void *arg)
 		return;
 	}
 
-	workqueue_t * workqueue = (workqueue_t *)arg;
-	job_t * job = new job_t;
-	if ( job == NULL) {
-		return;
-	}
-	job->job_function = on_client_request_function;
-
-
-
-	job->user_data = req;
-
-
-	workqueue_add_job(workqueue, job);
-
-
-	OnResponse(req, arg);
-	
 	const char * s_uri = evhttp_request_get_uri(req);
 	printf("Server Responsed. Requested: %s\n", s_uri);
 	const struct evhttp_uri* uri = evhttp_request_get_evhttp_uri(req);
@@ -127,7 +97,7 @@ void generic_handler(struct evhttp_request *req, void *arg)
 		printf(" %s: %s\n", header->key, header->value);
 	}
 	printf(" --------->header==========\n");
-	
+
 	struct evbuffer  *req_evb = evhttp_request_get_input_buffer(req);
 	int req_len = evbuffer_get_length(req_evb);
 
@@ -144,6 +114,27 @@ void generic_handler(struct evhttp_request *req, void *arg)
 	//evbuffer_add_printf(buf, "Server Responsed. Requested: %s\n", evhttp_request_get_uri(req));
 	evhttp_send_reply(req, HTTP_OK, "OK", buf);
 	evbuffer_free(buf);
+}
+
+static void on_client_request_function(struct job *job) {
+	struct evhttp_request *client = (struct evhttp_request *)job->user_data;
+	OnResponse(client, NULL);
+	delete job;
+}
+
+void generic_handler(struct evhttp_request *req, void *arg)
+{
+	//收到请求即转到线程处理
+	workqueue_t * workqueue = (workqueue_t *)arg;
+	job_t * job = new job_t;
+	if ( job == NULL) {
+		return;
+	}
+	job->job_function = on_client_request_function;
+	job->user_data = req;
+	workqueue_add_job(workqueue, job);
+
+	return;
 }
 
 

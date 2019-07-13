@@ -30,23 +30,25 @@ void worker_function(void *ptr) {
 
 	while (1) {
 		/* Wait until we get notified. */
-		worker->workqueue->jobs_mutex->lock();
-		while (worker->workqueue->waiting_jobs == NULL) {
+		{
+			//worker->workqueue->jobs_mutex->lock();
+			std::unique_lock<std::mutex> lk(*worker->workqueue->jobs_mutex);
+
+			while (worker->workqueue->waiting_jobs == NULL) {
+				/* If we're supposed to terminate, break out of our continuous loop. */
+				if (worker->terminate) break;
+				worker->workqueue->jobs_cond->wait(lk);
+			}
+
 			/* If we're supposed to terminate, break out of our continuous loop. */
 			if (worker->terminate) break;
 
-			//pthread_cond_wait(&worker->workqueue->jobs_cond, &worker->workqueue->jobs_mutex);
+			job = worker->workqueue->waiting_jobs;
+			if (job != NULL) {
+				LL_REMOVE(job, worker->workqueue->waiting_jobs);
+			}
+			//worker->workqueue->jobs_mutex->unlock();
 		}
-
-		/* If we're supposed to terminate, break out of our continuous loop. */
-		if (worker->terminate) break;
-
-		job = worker->workqueue->waiting_jobs;
-		if (job != NULL) {
-			LL_REMOVE(job, worker->workqueue->waiting_jobs);
-		}
-		worker->workqueue->jobs_mutex->unlock();
-
 		/* If we didn't get a job, then there's nothing to do at this time. */
 		if (job == NULL) continue;
 
