@@ -237,7 +237,7 @@ void SaveJsonData(const char * jsData)
 		int nballcnt = balls.Count();
 		for (int j = 0; j < nballcnt; j++)
 		{
-			auto s = balls[j][L"num"].ToString().c_str();
+			wstring s = balls[j][L"num"].ToString();
 
 			std::wstringstream ss;
 			ss << s;
@@ -376,7 +376,8 @@ int main(int argc, char* argv[])
 	init_win_socket();
 #endif
 
-	FILE * fp = NULL;//fopen("D:\\code\\libevt_httpsvr\\Debug\\jsdata.txt", "rb");
+	FILE * fp = NULL;
+//	fp = fopen("D:\\code\\libevt_httpsvr\\Debug\\jsdata.txt", "rb");
 	if (fp)
 	{
 		fseek(fp, 0, SEEK_END);
